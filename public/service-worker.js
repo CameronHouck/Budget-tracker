@@ -16,10 +16,25 @@ const FILES_TO_CACHE = [
 self.addEventListener("install", function (e) {
   ev.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("successfully pre-cached files!");
+      console.log("Successfully pre-cached files!");
       return cache.addAll(FILES_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
+self.addEventListener("activate", function (ev) {
+  ev.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+            console.log("Deleting old cache data", key);
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
