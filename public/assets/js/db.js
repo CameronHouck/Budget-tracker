@@ -10,3 +10,8 @@ request.onsuccess = function (e) {
   }
 };
 
+function saveRecord(record) {
+  const transaction = db.transaction(["budgetStore"], "readwrite");
+  const store = transaction.objectStore("budgetStore");
+  store.add(record);
+}
