@@ -14,22 +14,22 @@ const FILES_TO_CACHE = [
 ];
 
 self.addEventListener("install", function (e) {
-  ev.waitUntil(
+  e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Successfully pre-cached files!");
+      console.log("Your files were pre-cached successfully!");
       return cache.addAll(FILES_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", function (ev) {
-  ev.waitUntil(
+self.addEventListener("activate", function (e) {
+  e.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
-            console.log("Deleting old cache data", key);
+            console.log("Removing old cache data", key);
             return caches.delete(key);
           }
         })
@@ -39,16 +39,16 @@ self.addEventListener("activate", function (ev) {
   self.clients.claim();
 });
 
-self.addEventListener("fetch", function (ev) {
-  if (ev.request.url.includes("/api/")) {
-    ev.respondWith(
+self.addEventListener("fetch", function (e) {
+  if (e.request.url.includes("/api/")) {
+    e.respondWith(
       caches
         .open(DATA_CACHE_NAME)
         .then((cache) => {
-          return fetch(ev.request)
+          return fetch(e.request)
             .then((response) => {
               if (response.status === 200) {
-                cache.put(ev.request.url, response.clone());
+                cache.put(e.request.url, response.clone());
               }
               return response;
             })
@@ -60,10 +60,11 @@ self.addEventListener("fetch", function (ev) {
     );
     return;
   }
-  ev.respondWith(
+
+  e.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(ev.request).then((response) => {
-        return response || fetch(ev.request);
+      return cache.match(e.request).then((response) => {
+        return response || fetch(e.request);
       });
     })
   );
